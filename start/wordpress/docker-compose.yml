@@ -1,0 +1,20 @@
+services:
+
+  wordpress:
+    image: wordpress
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data-wordpress:/var/www/html
+    ports:
+      - "8085:80"
+    container_name: wordpress
+  db-wp:
+    image: mysql:8.0
+    container_name: db-wp
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./data-db:/var/lib/mysql
