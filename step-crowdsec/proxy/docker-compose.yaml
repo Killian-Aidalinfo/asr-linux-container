@@ -1,0 +1,60 @@
+services:
+  traefik:
+    image: traefik:v3.6.1
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - TZ=Europe/Paris
+    healthcheck:
+      test: 'wget -qO- http://localhost:80/ping || exit 1'
+      interval: 4s
+      timeout: 2s
+      retries: 5
+    command:
+      - '--accesslog=true'
+      - '--accesslog.format=json'
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - '--ping=true'
+      - '--ping.entrypoint=web'
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - '--entrypoints.web.http.encodequerysemicolons=true'
+      - '--entryPoints.web.http2.maxConcurrentStreams=250'
+      - "--entrypoints.websecure.address=:443"
+      - '--entrypoints.websecure.http.middlewares=securityHeaders@file,crowdsec@file'
+      - '--entrypoints.websecure.http.encodequerysemicolons=true'
+      - '--entryPoints.websecure.http2.maxConcurrentStreams=250'
+      - '--entrypoints.websecure.http3'
+      - '--providers.file.directory=/etc/traefik/dynamic/'
+      - '--providers.file.watch=true'
+      - '--serversTransport.insecureSkipVerify=true'
+      - '--providers.docker.exposedbydefault=false'
+      - "--providers.docker.network=proxy"
+      # - '--experimental.plugins.crowdsec.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin'
+      # - '--experimental.plugins.crowdsec.version=v1.4.2'
+      - "--certificatesresolvers.prodresolver.acme.email=youremail@domain.fr"
+      - "--certificatesresolvers.prodresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.prodresolver.acme.keytype=RSA4096"
+      - "--certificatesresolvers.prodresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.prodresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.prodresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.prodresolver.acme.storage=/letsencrypt/acme.json"
+      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      - "--experimental.plugins.crowdsec-bouncer.version=v1.4.6"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - /var/log/traefik:/var/log/traefik:rw
+      - ./dynamic:/etc/traefik/dynamic:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

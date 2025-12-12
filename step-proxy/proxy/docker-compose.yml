@@ -1,0 +1,30 @@
+services:
+  traefik:
+    image: traefik:v3.6.1
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.prodresolver.acme.email=youremail@domain.fr"
+      - "--certificatesresolvers.prodresolver.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.prodresolver.acme.keytype=RSA4096"
+      - "--certificatesresolvers.prodresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.prodresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.prodresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.prodresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

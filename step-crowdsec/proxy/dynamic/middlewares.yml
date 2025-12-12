@@ -1,0 +1,39 @@
+http:
+  middlewares:
+    securityHeaders:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: 'none,noarchive,nosnippet,notranslate,noimageindex'
+          server: ''
+        sslProxyHeaders:
+          X-Forwarded-Proto: https
+        referrerPolicy: same-origin
+        hostsProxyHeaders:
+          - X-Forwarded-Host
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+        contentTypeNosniff: true
+        browserXssFilter: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsSeconds: 63072000
+        stsPreload: true
+    crowdsec:
+      plugin:
+        crowdsec-bouncer:
+          enabled: true
+          defaultDecisionSeconds: 60
+          remediationStatusCode: 403          
+          crowdsecMode: live
+          crowdsecLapiKey: wRGt84tHNnc5jI33ZBVmjika2jvDe72/vDrK+Y0+ncA
+          crowdsecLapiHost: crowdsec:8080
+          crowdsecLapiScheme: http
+          crowdsecLapiTLSInsecureVerify: false
+          forwardedHeadersTrustedIPs:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
+          clientTrustedIPs:
+            - 10.0.0.0/8
+            - 172.16.0.0/12
+            - 192.168.0.0/16
