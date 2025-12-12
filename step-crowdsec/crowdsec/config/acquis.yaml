@@ -7,4 +7,4 @@ labels:
 filenames:
   - /var/log/traefik/*.log
 labels:
-  type: traefikœœ
+  type: traefik
